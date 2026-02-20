@@ -3,170 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>六組競賽抽籤計分板</title>
+    <title>容量換算大挑戰</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #4a90e2;
-            --secondary: #f39c12;
-            --bg: #f4f7f6;
-            --card: #ffffff;
-        }
-
-        body {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            display: flex;
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f0f9ff; }
+        .option-btn { transition: all 0.2s; }
+        .option-btn:hover { transform: translateY(-2px); }
+        .correct { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534; }
+        .wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b; }
+        .option-prefix { 
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background: var(--card);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-
-        h1 { text-align: center; color: #333; }
-
-        /* 抽籤區 */
-        .draw-section {
-            background: #eef2f7;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        #result-display {
-            font-size: 2rem;
+            width: 28px;
+            height: 28px;
+            background-color: #e2e8f0;
+            border-radius: 50%;
+            margin-right: 12px;
             font-weight: bold;
-            color: var(--primary);
-            margin: 15px 0;
-            height: 3rem;
+            font-size: 0.875rem;
+            color: #475569;
+            flex-shrink: 0;
         }
-
-        /* 計分區 */
-        .scoreboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .group-card {
-            border: 2px solid #eee;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-            transition: transform 0.2s;
-        }
-
-        .group-card:hover { transform: translateY(-5px); }
-
-        .group-name { font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; }
-
-        .score-display {
-            font-size: 2.5rem;
-            margin: 10px 0;
-            color: var(--secondary);
-        }
-
-        /* 按鈕樣式 */
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: opacity 0.2s;
-        }
-
-        .btn-draw { background: var(--primary); color: white; font-size: 1.2rem; }
-        .btn-plus { background: #2ecc71; color: white; }
-        .btn-minus { background: #e74c3c; color: white; }
-        .btn-reset { background: #95a5a6; color: white; margin-top: 20px; }
-        
-        button:active { opacity: 0.7; }
+        .correct .option-prefix { background-color: #22c55e; color: white; }
+        .wrong .option-prefix { background-color: #ef4444; color: white; }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center p-4">
 
-<div class="container">
-    <h1>🏆 六組競賽管理系統</h1>
-
-    <div class="draw-section">
-        <h3>隨機抽籤</h3>
-        <div id="result-display">準備抽籤...</div>
-        <button class="btn-draw" onclick="drawGroup()">點擊抽籤</button>
-    </div>
-
-    <div class="scoreboard" id="scoreboard">
+    <div id="game-container" class="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden">
+        <!-- Header -->
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">容量換算大挑戰</h1>
+            <p class="text-blue-100 mt-1">公升 (L) 與 毫升 (mL)</p>
         </div>
 
-    <div style="text-align: center;">
-        <button class="btn-reset" onclick="resetAll()">全體分數歸零</button>
-    </div>
-</div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 h-2">
+            <div id="progress-bar" class="bg-yellow-400 h-2 transition-all duration-500" style="width: 0%"></div>
+        </div>
 
-<script>
-    const groups = ["第一組", "第二組", "第三組", "第四組", "第五組", "第六組"];
-    let scores = [0, 0, 0, 0, 0, 0];
+        <!-- Quiz Content -->
+        <div id="quiz-box" class="p-8">
+            <div class="flex justify-between items-center mb-6">
+                <span id="question-number" class="text-blue-600 font-bold text-lg">第 1 題 / 8</span>
+                <span id="score-display" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">得分: 0</span>
+            </div>
 
-    // 初始化計分板
-    function initScoreboard() {
-        const board = document.getElementById('scoreboard');
-        board.innerHTML = '';
-        groups.forEach((name, index) => {
-            board.innerHTML += `
-                <div class="group-card">
-                    <div class="group-name">${name}</div>
-                    <div class="score-display" id="score-${index}">${scores[index]}</div>
-                    <button class="btn-minus" onclick="updateScore(${index}, -1)">-1</button>
-                    <button class="btn-plus" onclick="updateScore(${index}, 1)">+1</button>
+            <h2 id="question-text" class="text-xl text-gray-800 font-bold mb-8 leading-relaxed">題目載入中...</h2>
+
+            <div id="options-container" class="grid grid-cols-1 gap-4">
+                <!-- 選項會顯示在這裡 -->
+            </div>
+
+            <div id="feedback" class="mt-6 p-4 rounded-xl hidden">
+                <p id="feedback-text" class="font-medium"></p>
+                <p id="rationale-text" class="text-sm mt-1 opacity-90"></p>
+                <button id="next-btn" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">下一題</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="p-8 text-center hidden">
+            <div class="mb-6">
+                <div class="inline-block p-6 bg-yellow-100 rounded-full mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                 </div>
-            `;
-        });
-    }
+                <h2 class="text-3xl font-bold text-gray-800">測驗完成！</h2>
+                <p id="final-score" class="text-5xl font-black text-blue-600 my-6">0 / 100</p>
+                <p id="result-message" class="text-gray-600 mb-8 font-medium"></p>
+                <button id="restart-btn" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition">再玩一次</button>
+            </div>
+        </div>
+    </div>
 
-    // 抽籤功能
-    function drawGroup() {
-        const display = document.getElementById('result-display');
-        display.style.color = "#999";
-        let count = 0;
-        
-        // 跑馬燈動畫效果
-        const interval = setInterval(() => {
-            display.innerText = groups[Math.floor(Math.random() * 6)];
-            count++;
-            if (count > 10) {
-                clearInterval(interval);
-                const winner = groups[Math.floor(Math.random() * 6)];
-                display.innerText = "恭喜：" + winner;
-                display.style.color = "var(--primary)";
-            }
-        }, 50);
-    }
+    <script>
+        // 固定題目數據
+        const quizData = {
+            "questions": [
+                {
+                    "question": "【第一題】1 公升等於多少毫升？",
+                    "options": [
+                        { "text": "10 毫升", "rationale": "不對喔，公升與毫升是千進位。", "isCorrect": false },
+                        { "text": "100 毫升", "rationale": "這是百進位，要再多一個 0。", "isCorrect": false },
+                        { "text": "1000 毫升", "rationale": "正確！請記住：1 公升 = 1000 毫升。", "isCorrect": true },
+                        { "text": "10000 毫升", "rationale": "太多囉，1 公升只有 1000 毫升。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第二題】5 公升等於多少毫升？",
+                    "options": [
+                        { "text": "5000 毫升", "rationale": "正確！5 × 1000 = 5000 毫升。", "isCorrect": true },
+                        { "text": "500 毫升", "rationale": "少算了一個 0，換算公升要乘以 1000。", "isCorrect": false },
+                        { "text": "50 毫升", "rationale": "要注意單位換算的倍數喔。", "isCorrect": false },
+                        { "text": "50000 毫升", "rationale": "多算了一個 0。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第三題】8 公升 45 毫升等於多少毫升？",
+                    "options": [
+                        { "text": "845 毫升", "rationale": "不對，8 公升已經有 8000 毫升囉。", "isCorrect": false },
+                        { "text": "8045 毫升", "rationale": "正確！8 公升是 8000 毫升，加上 45 毫升等於 8045 毫升。", "isCorrect": true },
+                        { "text": "8450 毫升", "rationale": "這是把 45 毫升看成 450 毫升了。", "isCorrect": false },
+                        { "text": "80045 毫升", "rationale": "位數算錯了，多了一個 0。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第四題】1000 毫升等於多少公升？",
+                    "options": [
+                        { "text": "1 公升", "rationale": "正確！1000 毫升剛好就是 1 公升。", "isCorrect": true },
+                        { "text": "10 公升", "rationale": "10 公升是 10000 毫升。", "isCorrect": false },
+                        { "text": "100 公升", "rationale": "數值太大囉。", "isCorrect": false },
+                        { "text": "0.1 公升", "rationale": "1000 毫升是一個完整的公升單位。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第五題】4000 毫升等於多少公升？",
+                    "options": [
+                        { "text": "40 公升", "rationale": "多算了一個 0，1000 毫升才是一公升。", "isCorrect": false },
+                        { "text": "4 公升", "rationale": "正確！1000 毫升 = 1 公升，所以 4000 毫升 = 4 公升。", "isCorrect": true },
+                        { "text": "400 公升", "rationale": "數值差距太大。", "isCorrect": false },
+                        { "text": "0.4 公升", "rationale": "計算錯誤。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第六題】7065 毫升等於多少公升多少毫升？",
+                    "options": [
+                        { "text": "7 公升 65 毫升", "rationale": "正確！千位數的 7 代表 7 公升，其餘是 65 毫升。", "isCorrect": true },
+                        { "text": "7 公升 650 毫升", "rationale": "看錯位數了，6 是十位數。", "isCorrect": false },
+                        { "text": "70 公升 65 毫升", "rationale": "公升換算毫升是千位數，所以 7 代表 7 公升。", "isCorrect": false },
+                        { "text": "7 公升 6 毫升", "rationale": "毫升的部分不完整。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第七題】請問哪一個容量「最大」？",
+                    "options": [
+                        { "text": "3 公升 30 毫升", "rationale": "這只有 3030 毫升，有比它更大的。", "isCorrect": false },
+                        { "text": "2 公升 70 毫升", "rationale": "這只有 2070 毫升，是比較小的選項。", "isCorrect": false },
+                        { "text": "3100 毫升", "rationale": "正確！3100 毫升相當於 3 公升 100 毫升，是選項中最大的。", "isCorrect": true },
+                        { "text": "2800 毫升", "rationale": "2800 毫升等於 2 公升 800 毫升，比 3000 毫升小。", "isCorrect": false }
+                    ]
+                },
+                {
+                    "question": "【第八題】請問哪一個容量「最少」？",
+                    "options": [
+                        { "text": "6 公升 50 毫升", "rationale": "這是 6050 毫升，比 5 公升多很多。", "isCorrect": false },
+                        { "text": "5100 毫升", "rationale": "這是 5 公升 100 毫升，剛好比 C 選項多一點點。", "isCorrect": false },
+                        { "text": "5 公升 90 毫升", "rationale": "正確！5 公升 90 毫升 = 5090 毫升，是四個選項中最小的。", "isCorrect": true },
+                        { "text": "6200 毫升", "rationale": "這是 6 公升 200 毫升，是這裡最多的。", "isCorrect": false }
+                    ]
+                }
+            ]
+        };
 
-    // 更新分數
-    function updateScore(index, delta) {
-        scores[index] += delta;
-        if (scores[index] < 0) scores[index] = 0; // 防止負數
-        document.getElementById(`score-${index}`).innerText = scores[index];
-    }
+        let currentIdx = 0;
+        let score = 0;
+        let answered = false;
+        const alphabet = ['A', 'B', 'C', 'D'];
 
-    // 重置
-    function resetAll() {
-        if(confirm("確定要將所有分數清空嗎？")) {
-            scores = [0, 0, 0, 0, 0, 0];
-            initScoreboard();
+        const qText = document.getElementById('question-text');
+        const optionsBox = document.getElementById('options-container');
+        const qNum = document.getElementById('question-number');
+        const scoreDisp = document.getElementById('score-display');
+        const progressBar = document.getElementById('progress-bar');
+        const feedback = document.getElementById('feedback');
+        const feedbackText = document.getElementById('feedback-text');
+        const rationaleText = document.getElementById('rationale-text');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        function loadQuestion() {
+            answered = false;
+            feedback.classList.add('hidden');
+            const q = quizData.questions[currentIdx];
+            
+            qNum.innerText = `第 ${currentIdx + 1} 題 / ${quizData.questions.length}`;
+            qText.innerText = q.question;
+            progressBar.style.width = `${((currentIdx) / quizData.questions.length) * 100}%`;
+            
+            nextBtn.innerText = (currentIdx === quizData.questions.length - 1) ? "查看結果" : "下一題";
+
+            optionsBox.innerHTML = '';
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-medium text-gray-700 flex items-center";
+                btn.innerHTML = `<span class="option-prefix">${alphabet[index]}</span><span>${opt.text}</span>`;
+                btn.onclick = () => selectOption(btn, opt);
+                optionsBox.appendChild(btn);
+            });
         }
-    }
 
-    initScoreboard();
-</script>
+        function selectOption(btn, opt) {
+            if (answered) return;
+            answered = true;
 
+            const allBtns = optionsBox.querySelectorAll('.option-btn');
+            if (opt.isCorrect) {
+                btn.classList.add('correct');
+                score += (100 / quizData.questions.length);
+                feedbackText.innerText = "✨ 太棒了！答對了";
+                feedbackText.className = "font-bold text-green-600 text-lg";
+                scoreDisp.innerText = `得分: ${Math.round(score)}`;
+            } else {
+                btn.classList.add('wrong');
+                feedbackText.innerText = "❌ 再接再厲！答錯了";
+                feedbackText.className = "font-bold text-red-600 text-lg";
+                const correctIdx = quizData.questions[currentIdx].options.findIndex(o => o.isCorrect);
+                allBtns[correctIdx].classList.add('correct');
+            }
+
+            rationaleText.innerText = opt.rationale;
+            feedback.classList.remove('hidden');
+        }
+
+        nextBtn.onclick = () => {
+            currentIdx++;
+            if (currentIdx < quizData.questions.length) loadQuestion();
+            else showResult();
+        };
+
+        restartBtn.onclick = () => {
+            currentIdx = 0; score = 0;
+            scoreDisp.innerText = "得分: 0";
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-box').classList.remove('hidden');
+            loadQuestion();
+        };
+
+        function showResult() {
+            document.getElementById('quiz-box').classList.add('hidden');
+            progressBar.style.width = "100%";
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = Math.round(score);
+            
+            let msg = score === 100 ? "你是容量大師！全對！" : score >= 60 ? "表現不錯，再多練習幾次會更好。" : "別灰心，重新複習一下 L 和 mL 的關係吧！";
+            document.getElementById('result-message').innerText = msg;
+        }
+
+        window.onload = loadQuestion;
+    </script>
 </body>
 </html>
