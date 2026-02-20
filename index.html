@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>六組競賽抽籤計分板</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f39c12;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 { text-align: center; color: #333; }
+
+        /* 抽籤區 */
+        .draw-section {
+            background: #eef2f7;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #result-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 15px 0;
+            height: 3rem;
+        }
+
+        /* 計分區 */
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .group-card {
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .group-card:hover { transform: translateY(-5px); }
+
+        .group-name { font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; }
+
+        .score-display {
+            font-size: 2.5rem;
+            margin: 10px 0;
+            color: var(--secondary);
+        }
+
+        /* 按鈕樣式 */
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-draw { background: var(--primary); color: white; font-size: 1.2rem; }
+        .btn-plus { background: #2ecc71; color: white; }
+        .btn-minus { background: #e74c3c; color: white; }
+        .btn-reset { background: #95a5a6; color: white; margin-top: 20px; }
+        
+        button:active { opacity: 0.7; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🏆 六組競賽管理系統</h1>
+
+    <div class="draw-section">
+        <h3>隨機抽籤</h3>
+        <div id="result-display">準備抽籤...</div>
+        <button class="btn-draw" onclick="drawGroup()">點擊抽籤</button>
+    </div>
+
+    <div class="scoreboard" id="scoreboard">
+        </div>
+
+    <div style="text-align: center;">
+        <button class="btn-reset" onclick="resetAll()">全體分數歸零</button>
+    </div>
+</div>
+
+<script>
+    const groups = ["第一組", "第二組", "第三組", "第四組", "第五組", "第六組"];
+    let scores = [0, 0, 0, 0, 0, 0];
+
+    // 初始化計分板
+    function initScoreboard() {
+        const board = document.getElementById('scoreboard');
+        board.innerHTML = '';
+        groups.forEach((name, index) => {
+            board.innerHTML += `
+                <div class="group-card">
+                    <div class="group-name">${name}</div>
+                    <div class="score-display" id="score-${index}">${scores[index]}</div>
+                    <button class="btn-minus" onclick="updateScore(${index}, -1)">-1</button>
+                    <button class="btn-plus" onclick="updateScore(${index}, 1)">+1</button>
+                </div>
+            `;
+        });
+    }
+
+    // 抽籤功能
+    function drawGroup() {
+        const display = document.getElementById('result-display');
+        display.style.color = "#999";
+        let count = 0;
+        
+        // 跑馬燈動畫效果
+        const interval = setInterval(() => {
+            display.innerText = groups[Math.floor(Math.random() * 6)];
+            count++;
+            if (count > 10) {
+                clearInterval(interval);
+                const winner = groups[Math.floor(Math.random() * 6)];
+                display.innerText = "恭喜：" + winner;
+                display.style.color = "var(--primary)";
+            }
+        }, 50);
+    }
+
+    // 更新分數
+    function updateScore(index, delta) {
+        scores[index] += delta;
+        if (scores[index] < 0) scores[index] = 0; // 防止負數
+        document.getElementById(`score-${index}`).innerText = scores[index];
+    }
+
+    // 重置
+    function resetAll() {
+        if(confirm("確定要將所有分數清空嗎？")) {
+            scores = [0, 0, 0, 0, 0, 0];
+            initScoreboard();
+        }
+    }
+
+    initScoreboard();
+</script>
+
+</body>
+</html>
