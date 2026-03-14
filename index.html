@@ -28,44 +28,64 @@
         }
         .correct .option-prefix { background-color: #22c55e; color: white; }
         .wrong .option-prefix { background-color: #ef4444; color: white; }
+        
+        /* 頁面切換動畫 */
+        .page { transition: opacity 0.3s ease-in-out; }
+        .hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div id="game-container" class="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden">
-        <!-- Header -->
-        <div class="bg-blue-600 p-6 text-white text-center">
-            <h1 class="text-2xl font-bold">容量換算大挑戰</h1>
-            <p class="text-blue-100 mt-1">公升 (L) 與 毫升 (mL)</p>
-        </div>
-
-        <!-- Progress Bar -->
-        <div class="w-full bg-gray-200 h-2">
-            <div id="progress-bar" class="bg-yellow-400 h-2 transition-all duration-500" style="width: 0%"></div>
-        </div>
-
-        <!-- Quiz Content -->
-        <div id="quiz-box" class="p-8">
-            <div class="flex justify-between items-center mb-6">
-                <span id="question-number" class="text-blue-600 font-bold text-lg">第 1 題 / 8</span>
-                <span id="score-display" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">得分: 0</span>
-            </div>
-
-            <h2 id="question-text" class="text-xl text-gray-800 font-bold mb-8 leading-relaxed">題目載入中...</h2>
-
-            <div id="options-container" class="grid grid-cols-1 gap-4">
-                <!-- 選項會顯示在這裡 -->
-            </div>
-
-            <div id="feedback" class="mt-6 p-4 rounded-xl hidden">
-                <p id="feedback-text" class="font-medium"></p>
-                <p id="rationale-text" class="text-sm mt-1 opacity-90"></p>
-                <button id="next-btn" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">下一題</button>
+        
+        <!-- Start Page -->
+        <div id="start-page" class="page p-12 text-center">
+            <div class="py-16">
+                <div class="mb-12">
+                    <span class="bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider">複習</span>
+                    <h1 class="text-3xl font-black text-gray-800 mt-6 mb-2">三下數學 2-3</h1>
+                    <h2 class="text-2xl font-bold text-blue-600">容量的換算與比較</h2>
+                </div>
+                <button id="start-btn" class="w-full sm:w-64 bg-blue-600 text-white text-xl py-4 rounded-2xl font-black hover:bg-blue-700 shadow-lg shadow-blue-200 transform transition active:scale-95">
+                    開始遊戲
+                </button>
             </div>
         </div>
 
-        <!-- Result Screen -->
-        <div id="result-screen" class="p-8 text-center hidden">
+        <!-- Quiz Content Page (Initially Hidden) -->
+        <div id="quiz-page" class="page hidden">
+            <!-- Header -->
+            <div class="bg-blue-600 p-6 text-white text-center">
+                <h1 class="text-xl font-bold">容量換算大挑戰</h1>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 h-2">
+                <div id="progress-bar" class="bg-yellow-400 h-2 transition-all duration-500" style="width: 0%"></div>
+            </div>
+
+            <div id="quiz-box" class="p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <span id="question-number" class="text-blue-600 font-bold text-lg">第 1 題 / 5</span>
+                    <span id="score-display" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">得分: 0</span>
+                </div>
+
+                <h2 id="question-text" class="text-xl text-gray-800 font-bold mb-8 leading-relaxed">題目載入中...</h2>
+
+                <div id="options-container" class="grid grid-cols-1 gap-4">
+                    <!-- 選項 -->
+                </div>
+
+                <div id="feedback" class="mt-6 p-4 rounded-xl hidden">
+                    <p id="feedback-text" class="font-medium"></p>
+                    <p id="rationale-text" class="text-sm mt-1 leading-relaxed"></p>
+                    <button id="next-btn" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">下一題</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen (Initially Hidden) -->
+        <div id="result-screen" class="page p-8 text-center hidden">
             <div class="mb-6">
                 <div class="inline-block p-6 bg-yellow-100 rounded-full mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,79 +101,52 @@
     </div>
 
     <script>
-        // 固定題目數據
+        // 固定題庫數據
         const quizData = {
             "questions": [
                 {
                     "question": "【第一題】1 公升等於多少毫升？",
                     "options": [
-                        { "text": "10 毫升", "rationale": "不對喔，公升與毫升是千進位。", "isCorrect": false },
-                        { "text": "100 毫升", "rationale": "這是百進位，要再多一個 0。", "isCorrect": false },
+                        { "text": "10 毫升", "rationale": "不對喔。1 公升 = 1000 毫升。", "isCorrect": false },
+                        { "text": "100 毫升", "rationale": "不對喔。1 公升 = 1000 毫升。", "isCorrect": false },
                         { "text": "1000 毫升", "rationale": "正確！請記住：1 公升 = 1000 毫升。", "isCorrect": true },
-                        { "text": "10000 毫升", "rationale": "太多囉，1 公升只有 1000 毫升。", "isCorrect": false }
+                        { "text": "10000 毫升", "rationale": "不對喔。1 公升 = 1000 毫升。", "isCorrect": false }
                     ]
                 },
                 {
                     "question": "【第二題】5 公升等於多少毫升？",
                     "options": [
-                        { "text": "5000 毫升", "rationale": "正確！5 × 1000 = 5000 毫升。", "isCorrect": true },
-                        { "text": "500 毫升", "rationale": "少算了一個 0，換算公升要乘以 1000。", "isCorrect": false },
-                        { "text": "50 毫升", "rationale": "要注意單位換算的倍數喔。", "isCorrect": false },
-                        { "text": "50000 毫升", "rationale": "多算了一個 0。", "isCorrect": false }
+                        { "text": "5000 毫升", "rationale": "正確！5 公升 = 5000 毫升。", "isCorrect": true },
+                        { "text": "500 毫升", "rationale": "不對喔。5 公升 = 5000 毫升。", "isCorrect": false },
+                        { "text": "50 毫升", "rationale": "不對喔。5 公升 = 5000 毫升。", "isCorrect": false },
+                        { "text": "50000 毫升", "rationale": "不對喔。5 公升 = 5000 毫升。", "isCorrect": false }
                     ]
                 },
                 {
-                    "question": "【第三題】8 公升 45 毫升等於多少毫升？",
+                    "question": "【第三題】3 公升 400 毫升等於多少毫升？",
                     "options": [
-                        { "text": "845 毫升", "rationale": "不對，8 公升已經有 8000 毫升囉。", "isCorrect": false },
-                        { "text": "8045 毫升", "rationale": "正確！8 公升是 8000 毫升，加上 45 毫升等於 8045 毫升。", "isCorrect": true },
-                        { "text": "8450 毫升", "rationale": "這是把 45 毫升看成 450 毫升了。", "isCorrect": false },
-                        { "text": "80045 毫升", "rationale": "位數算錯了，多了一個 0。", "isCorrect": false }
+                        { "text": "340 毫升", "rationale": "不對喔。3公升＝3000毫升，3000+400=3400（毫升）", "isCorrect": false },
+                        { "text": "3040 毫升", "rationale": "不對喔。3公升＝3000毫升，3000+400=3400（毫升）", "isCorrect": false },
+                        { "text": "3400 毫升", "rationale": "正確！3公升＝3000毫升，3000+400=3400（毫升）", "isCorrect": true },
+                        { "text": "30040 毫升", "rationale": "不對喔。3公升＝3000毫升，3000+400=3400（毫升）", "isCorrect": false }
                     ]
                 },
                 {
-                    "question": "【第四題】1000 毫升等於多少公升？",
+                    "question": "【第四題】7 公升 20 毫升等於多少毫升？",
                     "options": [
-                        { "text": "1 公升", "rationale": "正確！1000 毫升剛好就是 1 公升。", "isCorrect": true },
-                        { "text": "10 公升", "rationale": "10 公升是 10000 毫升。", "isCorrect": false },
-                        { "text": "100 公升", "rationale": "數值太大囉。", "isCorrect": false },
-                        { "text": "0.1 公升", "rationale": "1000 毫升是一個完整的公升單位。", "isCorrect": false }
+                        { "text": "720 毫升", "rationale": "不對喔。7公升＝7000毫升，7000+20=7020（毫升）", "isCorrect": false },
+                        { "text": "7020 毫升", "rationale": "正確！7公升＝7000毫升，7000+20=7020（毫升）", "isCorrect": true },
+                        { "text": "7200 毫升", "rationale": "不對喔。7公升＝7000毫升，7000+20=7020（毫升）", "isCorrect": false },
+                        { "text": "70020 毫升", "rationale": "不對喔。7公升＝7000毫升，7000+20=7020（毫升）", "isCorrect": false }
                     ]
                 },
                 {
-                    "question": "【第五題】4000 毫升等於多少公升？",
+                    "question": "【第五題】8 公升 10 毫升等於多少毫升？",
                     "options": [
-                        { "text": "40 公升", "rationale": "多算了一個 0，1000 毫升才是一公升。", "isCorrect": false },
-                        { "text": "4 公升", "rationale": "正確！1000 毫升 = 1 公升，所以 4000 毫升 = 4 公升。", "isCorrect": true },
-                        { "text": "400 公升", "rationale": "數值差距太大。", "isCorrect": false },
-                        { "text": "0.4 公升", "rationale": "計算錯誤。", "isCorrect": false }
-                    ]
-                },
-                {
-                    "question": "【第六題】7065 毫升等於多少公升多少毫升？",
-                    "options": [
-                        { "text": "7 公升 65 毫升", "rationale": "正確！千位數的 7 代表 7 公升，其餘是 65 毫升。", "isCorrect": true },
-                        { "text": "7 公升 650 毫升", "rationale": "看錯位數了，6 是十位數。", "isCorrect": false },
-                        { "text": "70 公升 65 毫升", "rationale": "公升換算毫升是千位數，所以 7 代表 7 公升。", "isCorrect": false },
-                        { "text": "7 公升 6 毫升", "rationale": "毫升的部分不完整。", "isCorrect": false }
-                    ]
-                },
-                {
-                    "question": "【第七題】請問哪一個容量「最大」？",
-                    "options": [
-                        { "text": "3 公升 30 毫升", "rationale": "這只有 3030 毫升，有比它更大的。", "isCorrect": false },
-                        { "text": "2 公升 70 毫升", "rationale": "這只有 2070 毫升，是比較小的選項。", "isCorrect": false },
-                        { "text": "3100 毫升", "rationale": "正確！3100 毫升相當於 3 公升 100 毫升，是選項中最大的。", "isCorrect": true },
-                        { "text": "2800 毫升", "rationale": "2800 毫升等於 2 公升 800 毫升，比 3000 毫升小。", "isCorrect": false }
-                    ]
-                },
-                {
-                    "question": "【第八題】請問哪一個容量「最少」？",
-                    "options": [
-                        { "text": "6 公升 50 毫升", "rationale": "這是 6050 毫升，比 5 公升多很多。", "isCorrect": false },
-                        { "text": "5100 毫升", "rationale": "這是 5 公升 100 毫升，剛好比 C 選項多一點點。", "isCorrect": false },
-                        { "text": "5 公升 90 毫升", "rationale": "正確！5 公升 90 毫升 = 5090 毫升，是四個選項中最小的。", "isCorrect": true },
-                        { "text": "6200 毫升", "rationale": "這是 6 公升 200 毫升，是這裡最多的。", "isCorrect": false }
+                        { "text": "810 毫升", "rationale": "不對喔。8公升＝8000毫升，8000+10=8010（毫升）", "isCorrect": false },
+                        { "text": "8100 毫升", "rationale": "不對喔。8公升＝8000毫升，8000+10=8010（毫升）", "isCorrect": false },
+                        { "text": "8010 毫升", "rationale": "正確！8公升＝8000毫升，8000+10=8010（毫升）", "isCorrect": true },
+                        { "text": "80010 毫升", "rationale": "不對喔。8公升＝8000毫升，8000+10=8010（毫升）", "isCorrect": false }
                     ]
                 }
             ]
@@ -164,6 +157,10 @@
         let answered = false;
         const alphabet = ['A', 'B', 'C', 'D'];
 
+        const startPage = document.getElementById('start-page');
+        const quizPage = document.getElementById('quiz-page');
+        const resultScreen = document.getElementById('result-screen');
+        
         const qText = document.getElementById('question-text');
         const optionsBox = document.getElementById('options-container');
         const qNum = document.getElementById('question-number');
@@ -172,8 +169,17 @@
         const feedback = document.getElementById('feedback');
         const feedbackText = document.getElementById('feedback-text');
         const rationaleText = document.getElementById('rationale-text');
+        
+        const startBtn = document.getElementById('start-btn');
         const nextBtn = document.getElementById('next-btn');
         const restartBtn = document.getElementById('restart-btn');
+
+        // 開始按鈕點擊事件
+        startBtn.onclick = () => {
+            startPage.classList.add('hidden');
+            quizPage.classList.remove('hidden');
+            loadQuestion();
+        };
 
         function loadQuestion() {
             answered = false;
@@ -215,35 +221,37 @@
                 allBtns[correctIdx].classList.add('correct');
             }
 
-            rationaleText.innerText = opt.rationale;
+            // 處理換行顯示 (將Rationale中的逗號或句號後方加入換行感)
+            rationaleText.innerHTML = opt.rationale.replace('，', '<br>');
             feedback.classList.remove('hidden');
         }
 
         nextBtn.onclick = () => {
             currentIdx++;
-            if (currentIdx < quizData.questions.length) loadQuestion();
-            else showResult();
+            if (currentIdx < quizData.questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
         };
 
         restartBtn.onclick = () => {
-            currentIdx = 0; score = 0;
+            currentIdx = 0;
+            score = 0;
             scoreDisp.innerText = "得分: 0";
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('quiz-box').classList.remove('hidden');
-            loadQuestion();
+            resultScreen.classList.add('hidden');
+            startPage.classList.remove('hidden');
         };
 
         function showResult() {
-            document.getElementById('quiz-box').classList.add('hidden');
+            quizPage.classList.add('hidden');
             progressBar.style.width = "100%";
-            document.getElementById('result-screen').classList.remove('hidden');
+            resultScreen.classList.remove('hidden');
             document.getElementById('final-score').innerText = Math.round(score);
             
             let msg = score === 100 ? "你是容量大師！全對！" : score >= 60 ? "表現不錯，再多練習幾次會更好。" : "別灰心，重新複習一下 L 和 mL 的關係吧！";
             document.getElementById('result-message').innerText = msg;
         }
-
-        window.onload = loadQuestion;
     </script>
 </body>
 </html>
