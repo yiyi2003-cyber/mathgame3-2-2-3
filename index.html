@@ -155,7 +155,8 @@
         let currentIdx = 0;
         let score = 0;
         let answered = false;
-        const alphabet = ['A', 'B', 'C', 'D'];
+        // 將標籤改為 1, 2, 3, 4
+        const labels = ['1', '2', '3', '4'];
 
         const startPage = document.getElementById('start-page');
         const quizPage = document.getElementById('quiz-page');
@@ -196,7 +197,8 @@
             q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
                 btn.className = "option-btn w-full text-left p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 font-medium text-gray-700 flex items-center";
-                btn.innerHTML = `<span class="option-prefix">${alphabet[index]}</span><span>${opt.text}</span>`;
+                // 使用數字標籤
+                btn.innerHTML = `<span class="option-prefix">${labels[index]}</span><span>${opt.text}</span>`;
                 btn.onclick = () => selectOption(btn, opt);
                 optionsBox.appendChild(btn);
             });
@@ -221,7 +223,7 @@
                 allBtns[correctIdx].classList.add('correct');
             }
 
-            // 處理換行顯示 (將Rationale中的逗號或句號後方加入換行感)
+            // 處理換行顯示
             rationaleText.innerHTML = opt.rationale.replace('，', '<br>');
             feedback.classList.remove('hidden');
         }
